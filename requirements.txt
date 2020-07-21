@@ -1,0 +1,4 @@
+opencv-python~=4.3.0.36
+numpy~=1.19.0
+imutils~=0.5.3
+opencv-contrib-python==4.1.0.25
