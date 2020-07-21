@@ -12,6 +12,11 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import HaarFaceDetector, PID
 MODELS_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
+DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+import json
+
+import matplotlib.pyplot as plt
+import pandas as pd
 
 # TODO return to (pan, tilt) = (0, 0)
 
@@ -39,12 +44,12 @@ class PiFaceDetector:
 		self.frame_center_Y = self.resolution[1] / 2
 
 		# pid constants
-		self.pan_p = 0.04
-		self.pan_i = 0.015
-		self.pan_d = 0.01
-		self.tilt_p = 0.06
-		self.tilt_i = 0.10
-		self.tilt_d = 0.01
+		self.pan_p = 0.025
+		self.pan_i = 0.04
+		self.pan_d = 0.00
+		self.tilt_p = 0.025
+		self.tilt_i = 0.04
+		self.tilt_d = 0.00
 
 		self.aimer = PanTilt(
 			servo1_min=745,
@@ -100,7 +105,7 @@ class PiFaceDetector:
 			cv2.waitKey(1)
 
 
-	def pid_process(self, servo_angle, p, i, d, obj_coord, center_coord):
+	def pid_process(self, servo_angle, p, i, d, obj_coord, center_coord, tuning_time_data, tuning_error_data, tuning_angle_data):
 		"""
 		Calculates and updates servo angle
 		"""
@@ -108,14 +113,22 @@ class PiFaceDetector:
 		signal.signal(signal.SIGINT, signal_handler)
 
 		# create a PID and initialize it
-		p = PID(p, i, d)
-		p.initialize()
+		pid = PID(p, i, d)
+		pid.initialize()
 		
 		while True:
 			# calculate the error
 			error = center_coord - obj_coord.value
+
 			# update the value
-			servo_angle.value = p.update(error)
+			servo_angle.value = pid.update(error)
+
+			# store tuning data
+			tuning_time_data.append(pid.prevTime)
+			tuning_error_data.append(servo_angle.value)
+			tuning_angle_data.append(error)
+			# print(tuning_time_data)
+		
 			# print('error: ', error, 'new_angle: ', servo_angle.value)
 			# if servo_angle.value <= 10:
 			# 	pth.set_all(255, 255, 0)
@@ -125,7 +138,7 @@ class PiFaceDetector:
 			# 	pth.show()
 		
 	
-	def pan_pid_process(self, pan_angle, obj_coord_X):
+	def pan_pid_process(self, pan_angle, obj_coord_X, tuning_time_data, tuning_error_data, tuning_angle_data):
 		"""
 		Pan Angle is updated
 		"""
@@ -135,17 +148,23 @@ class PiFaceDetector:
 			self.pan_i,
 			self.pan_d,
 			obj_coord_X,
-			self.frame_center_X
+			self.frame_center_X,
+			tuning_time_data, 
+			tuning_error_data, 
+			tuning_angle_data
 		)
 
-	def tilt_pid_process(self, tilt_angle, obj_coord_Y):
+	def tilt_pid_process(self, tilt_angle, obj_coord_Y, tuning_time_data, tuning_error_data, tuning_angle_data):
 		self.pid_process(
 			tilt_angle,
 			self.tilt_p,
 			self.tilt_i,
 			self.tilt_d,
 			obj_coord_Y,
-			self.frame_center_Y
+			self.frame_center_Y,
+			tuning_time_data, 
+			tuning_error_data, 
+			tuning_angle_data
 		)
 
 	def _angle_in_range(self, angle):
@@ -156,7 +175,7 @@ class PiFaceDetector:
 		signal.signal(signal.SIGINT, signal_handler)
 		
 		while True:
-			# time.sleep(0.2)
+			time.sleep(0.05)
 
 			# the pan and tilt angles are reversed
 			pan_angle_this = -1 * pan_angle.value
@@ -172,22 +191,78 @@ class PiFaceDetector:
 			if self._angle_in_range(pan_angle_this):
 				print('Pan in range', pan_angle_this)
 				self.aimer.pan(pan_angle_this)
-			else:
-				print('Pan not in range', pan_angle_this)
+			# else:
+			# 	print('Pan not in range', pan_angle_this)
 
 			# if the tilt angle is within the range, tilt
 			if self._angle_in_range(tilt_angle_this):
 				print('Tilt in range', tilt_angle_this)
 				self.aimer.tilt(tilt_angle_this)
-			else:
-				print('Tilt not in range', tilt_angle_this)
+			# else:
+			# 	print('Tilt not in range', tilt_angle_this)
+
+
+	def _save_tuning_process(self, p, i, d, tuning_time_data, tuning_error_data, tuning_angle_data, directory):
+		data_to_save = {
+			'p': p,
+			'i': i,
+			'd': d,
+			't': [],
+			'error': [],
+			'angle': [],
+		}
+		while True:
+			for t, error, angle in zip(tuning_time_data, tuning_error_data, tuning_angle_data):
+				data_to_save['t'].append(t)
+				data_to_save['error'].append(error)
+				data_to_save['angle'].append(angle)
+
+			# print(data_to_save)
+			# print(tuning_time_data)
+			data_filepath = os.path.join(directory, f'{p}_{i}_{d}.json')
+			image_filepath = os.path.join(directory, f'{p}_{i}_{d}.png')
+
+			with open(data_filepath, 'w') as fp:
+				json.dump(data_to_save, fp)
+
+			df = pd.DataFrame(data_to_save)
+			df = df.drop_duplicates()
+
+			plt.plot(df['t'], df['error'], marker='')
+			plt.title(f'{p}_{i}_{d}.png')
+			plt.savefig(image_filepath)
+
+
+	
+	def save_pan_tuning_process(self, tuning_time_data, tuning_error_data, tuning_angle_data):
+		self._save_tuning_process(
+			self.pan_p,
+			self.pan_i,
+			self.pan_d,
+			tuning_time_data, 
+			tuning_error_data, 
+			tuning_angle_data,
+			os.path.join(DATA_DIRECTORY, 'pan_error')
+		)
+		
+	def save_tilt_tuning_process(self, tuning_time_data, tuning_error_data, tuning_angle_data):
+		self._save_tuning_process(
+			self.tilt_p,
+			self.tilt_i,
+			self.tilt_d,
+			tuning_time_data, 
+			tuning_error_data, 
+			tuning_angle_data,
+			os.path.join(DATA_DIRECTORY, 'tilt_error')
+		)
 
 
 # function to handle keyboard interrupt
 def signal_handler(sig, frame):
 	# print a status message
 	print("[INFO] You pressed `ctrl + c`! Exiting...")
-
+	
+	# clear lights
 	pth.clear()
 	pth.show()
 
@@ -197,10 +272,16 @@ def signal_handler(sig, frame):
 
 if __name__ == '__main__':
 	pi_face_detector = PiFaceDetector() 
-	pth.pan(0)
+	pth.pan(10)
 	pth.tilt(-40)
 
 	with Manager() as manager:
+		# initialise tuning data variable holder
+		# tuning_data = manager.dict()
+		tuning_time_data = manager.list()
+		tuning_error_data = manager.list()
+		tuning_angle_data = manager.list()
+
 		# set integer values for the object's (x, y)-coordinates
 		obj_coord_X = manager.Value("i", pi_face_detector.frame_center_X)
 		obj_coord_Y = manager.Value("i", pi_face_detector.frame_center_Y)
@@ -213,21 +294,33 @@ if __name__ == '__main__':
 			args=(obj_coord_X, obj_coord_Y))
 
 		process_panning = Process(target=pi_face_detector.pan_pid_process,
-			args=(pan_angle, obj_coord_X))
+			args=(pan_angle, obj_coord_X, tuning_time_data, tuning_error_data, tuning_angle_data))
 
 		process_tilting = Process(target=pi_face_detector.tilt_pid_process,
-			args=(tilt_angle, obj_coord_Y))
+			args=(tilt_angle, obj_coord_Y, tuning_time_data, tuning_error_data, tuning_angle_data))
 
 		process_set_servos = Process(target=pi_face_detector.set_servos, args=(pan_angle, tilt_angle))
 
+		# store data
+	#	process_save_pan_tuning_process = Process(target=pi_face_detector.save_pan_tuning_process,
+	#		args=(tuning_time_data, tuning_error_data, tuning_angle_data))
+				
+		process_save_tilt_tuning_process = Process(target=pi_face_detector.save_tilt_tuning_process,
+			args=(tuning_time_data, tuning_error_data, tuning_angle_data))
+	
+		
 		# start all 4 processes
 		process_start_camera.start()
 		process_panning.start()
-		#process_tilting.start()
+		process_tilting.start()
 		process_set_servos.start()
+		#process_save_pan_tuning_process.start()
+		process_save_tilt_tuning_process.start()
 
 		# join all 4 processes
 		process_start_camera.join()
 		process_panning.join()
-		#process_tilting.join()
+		process_tilting.join()
 		process_set_servos.join()
+		#process_save_pan_tuning_process.join()
+		process_save_tilt_tuning_process.join()

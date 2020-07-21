@@ -80,17 +80,6 @@ class PID:
 		self.prevTime = self.currTime
 		self.prevError = error
 
-		# print([
-		# 	self.kP * self.cP,
-		# 	self.kI * self.cI,
-		# 	self.kD * self.cD,
- 		# 	sum([
-		# 		self.kP * self.cP,
-		# 		self.kI * self.cI,
-		# 		self.kD * self.cD
-		# 	])
-		# ])
-
 		# sum the terms and return
 		return sum([
 			self.kP * self.cP,
