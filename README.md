@@ -7,6 +7,8 @@ In the first stage of this project, I aim to be able to:
     - be able to recognise certain faces
     - be able to feedback personalised messages to different individuals
 
+in the stage 1.5:
+    - train a new face using the camera
 
 In the second stage of this project, I will connect a Google Home that will allow me to
     - send personalised messages from the pi
@@ -37,6 +39,7 @@ https://www.pyimagesearch.com/2018/09/24/opencv-face-recognition/
 https://www.pyimagesearch.com/2018/06/18/face-recognition-with-opencv-python-and-deep-learning/
 https://www.pyimagesearch.com/2018/06/25/raspberry-pi-face-recognition/
 https://www.pyimagesearch.com/2020/01/06/raspberry-pi-and-movidius-ncs-face-recognition/
+https://www.pyimagesearch.com/2018/06/11/how-to-build-a-custom-face-recognition-dataset/
 
 ## Steps
 1. Setup Raspberry Pi to function with the Pan Tilt Module and Light
@@ -49,3 +52,15 @@ https://www.pyimagesearch.com/2020/01/06/raspberry-pi-and-movidius-ncs-face-reco
 # Aim the camera at a face / multiple faces
 # Identify a known face
 # Train a new face
+
+
+# Timelapse
+raspistill -t 3600000 -tl 15000 -o image%04d.jpg
+
+# reduce quality with
+raspistill -w 640 -h 480 -t 3600000 -tl 1000 -o image%04d.jpg # specify dimenions
+raspistill -n -q 10 # specify % https://www.raspberrypi.org/forums/viewtopic.php?t=54859
+
+# stich together with
+ffmpeg -r 24 -pattern_type glob -i '*.jpg' -s hd1080 -vcodec libx264 timelapse.mp4
+
