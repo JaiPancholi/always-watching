@@ -6,6 +6,13 @@ MODELS_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 from utils import HaarFaceDetector
 
+import time
+import cv2
+
+from PIL import Image
+import numpy as np
+import json
+
 class PiFaceRecognition:
 	"""
 	Classifies an extracted face against a database of known faces.
@@ -15,51 +22,173 @@ class PiFaceRecognition:
 		self.resolution = (900, 400)
 
 
-	def enroll_images(self, rpi=True):
+	def enroll_images(self, person, rpi=True):
 		"""
 		Loads a camera and takes a picture at every 'K' keep press.
 		"""
+		# create folder if not exists
+		image_directory = os.path.join(DATA_DIRECTORY, 'faces', person)
+		if not os.path.exists(image_directory):
+			print('Directory does not exist. Creating directroy for ', person)
+			os.makedirs(image_directory)
+
 		# initialize the object center finder
 		self.haar_face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
 
-		# initialize the video stream, allow the camera sensor to warm up,
-		# and initialize the total number of example faces written to disk
-		# thus far
-		print("[INFO] starting video stream...")
+		# start camera, giving time to warm up
+		print('Starting video stream...')
+		if rpi:
+			vs = VideoStream(usePiCamera=rpi).start()
+		else:
+			vs = VideoStream(src=1).start()
 
-		# vs = VideoStream(src=0).start()
-		vs = VideoStream(usePiCamera=rpi).start()
 		time.sleep(2.0)
 		total = 0
 
 		while True:
 			frame = vs.read()
-			# orig = frame.copy()
-			# frame = imutils.resize(frame, width=400)
+			if rpi:
+				frame = cv2.flip(frame, -1) # flip video image vertically
 
-			# show the output frame
-			cv2.imshow("Frame", frame)
+			# get key
 			key = cv2.waitKey(1) & 0xFF
+
+			# Extact and draw faces
+			rects = self.haar_face_detector.extract_faces(frame)
+			if rects:
+				for centre, (x,y,w,h) in rects:
+					cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
+
+			cv2.imshow('Frame', frame)
 		
 			# if the `k` key was pressed, write the *original* frame to disk
 			# so we can later process it and use it for face recognition
 			if key == ord("k"):
-				# p = os.path.sep.join([args["output"], "{}.png".format(
-					# str(total).zfill(5))])
-				# cv2.imwrite(p, orig)
-				total += 1
+				if rects:
+					for centre, (x,y,w,h) in rects:
+						frame = frame[y:y+h,x:x+w]
+						image_path = os.path.join(image_directory, f'{total}.jpg')
+						cv2.imwrite(image_path, frame)
+						total += 1
+
 			# if the `q` key was pressed, break from the loop
 			elif key == ord("q"):
 				break
 
 		# print the total faces saved and do a bit of cleanup
-		print("[INFO] {} face images stored".format(total))
-		print("[INFO] cleaning up...")
+		print('{} face images stored'.format(total))
 		cv2.destroyAllWindows()
 		vs.stop()
 
 	def train_lbph_face_recogniser(self):
-		pass
+		"""
+		...
+		"""
+		people = {}
+		faces = []
+		labels = []
+		faces_directory = os.path.join(DATA_DIRECTORY, 'faces')
+		for i, person_folder in enumerate(os.listdir(faces_directory)):
+			if person_folder == '.DS_Store':
+				continue
+
+			# store person to index lookup
+			people[person_folder] = i
+			
+			# load images into array
+			person_directory = os.path.join(faces_directory, person_folder)
+			for image_name in os.listdir(person_directory):
+				image_path = os.path.join(person_directory, image_name)
+				img = Image.open(image_path).convert('L') # convert it to grayscale
+				img_array = np.array(img, 'uint8')
+				faces.append(img_array)
+				labels.append(people[person_folder])
+
+		# initialise and train model
+		recognizer = cv2.face.LBPHFaceRecognizer_create()
+		recognizer.train(faces, np.array(labels))
+		
+		# Save the model into trainer/trainer.yml
+		model_path = os.path.join(MODELS_DIRECTORY, 'custom-opencv.yml')
+		recognizer.write(model_path) # recognizer.save() worked on Mac, but not on Pi
+		
+		# save label lookup
+		model_path = os.path.join(MODELS_DIRECTORY, 'custom-opencv-lookup.json')
+		with open(model_path, 'w') as fp:
+			json.dump(people, fp)
+
+	def infer_lbph_face_recogniser(self, face):
+		# load model
+		recognizer = cv2.face.LBPHFaceRecognizer_create()
+		model_path = os.path.join(MODELS_DIRECTORY, 'custom-opencv.yml')
+		recognizer.read(model_path)
+
+		# load label lookup
+		model_path = os.path.join(MODELS_DIRECTORY, 'custom-opencv-lookup.json')
+		with open(model_path, 'r') as fp:
+			people = json.load(fp)
+
+		# reverse lookup
+		index_to_person = {idx: person for person, idx in people.items()}
+
+		# predict
+		face_index, confidence = recognizer.predict(face)
+
+		return index_to_person[face_index], confidence
+
+	def start_camera(self, rpi=True):
+		# initialize the object center finder
+		self.haar_face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
+
+		# start camera, giving time to warm up
+		print('Starting video stream...')
+		if rpi:
+			vs = VideoStream(usePiCamera=rpi).start()
+		else:
+			vs = VideoStream(src=1).start()
+
+		time.sleep(2.0)
+
+		font = cv2.FONT_HERSHEY_SIMPLEX
+
+		while True:
+			frame = vs.read()
+
+			if rpi:
+				frame = cv2.flip(frame, -1) # flip video image vertically
+
+			# get key
+			key = cv2.waitKey(1) & 0xFF
+
+			# Extact and draw faces
+			rects = self.haar_face_detector.extract_faces(frame)
+			if rects:
+				for centre, (x,y,w,h) in rects:
+					cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
+					
+					# convert to gray
+					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+					person, confidence = self.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
+					cv2.putText(frame, person, (x+5, y-5), font, 1, (255,255,255), 2)
+					cv2.putText(frame, str(confidence), (x+5, y+h-5), font, 1, (255,255,0), 1)  
+
+			# show image
+			cv2.imshow('Frame', frame)
+
+			# if the `q` key was pressed, break from the loop
+			if key == ord("q"):
+				break
+
+		# print the total faces saved and do a bit of cleanup
+		print('{} face images stored'.format(total))
+		cv2.destroyAllWindows()
+		vs.stop()
+
+    # cv2.imshow('camera',img) 
+    # k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
+    # if k == 27:
+    #     break
 
 	# def train_embedding(self):
 	#     pass
@@ -93,4 +222,6 @@ class PiFaceRecognition:
 
 if __name__ == '__main__':
 	fr = PiFaceRecognition()
-	fr.enroll_images(rpi=False)
+	# fr.enroll_images('jai', rpi=False)
+	# fr.train_lbph_face_recogniser()
+	fr.start_camera(rpi=False)
