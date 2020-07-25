@@ -165,7 +165,7 @@ class PiFaceRecognition:
 			if rects:
 				for centre, (x,y,w,h) in rects:
 					cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
-					
+
 					# convert to gray
 					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
