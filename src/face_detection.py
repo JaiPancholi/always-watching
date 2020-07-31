@@ -104,8 +104,8 @@ class PiFaceDetector:
 					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to gray
 
 					person, confidence = fr.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
-					cv2.putText(frame, person, (x+5, y-5), font, 1, (255,255,255), 2)
-					cv2.putText(frame, str(confidence), (x+5, y+h-5), font, 1, (255,255,0), 1)  
+					cv2.putText(frame, person, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+					cv2.putText(frame, str(confidence), (x+5, y+h-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,0), 1)  
 
 			else:
 				print('No faces found.')
