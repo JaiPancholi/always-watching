@@ -75,6 +75,9 @@ class PiFaceDetector:
 		# initialize the object center finder
 		face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
 
+		# initialise the recogniser
+		fr = PiFaceRecognition()
+
 		while True:
 			# grab the frame from the threaded video stream and flip it
 			# vertically (since our camera was upside down)
@@ -96,6 +99,14 @@ class PiFaceDetector:
 				for pos, rect in object_locations:
 					(x, y, w, h) = rect
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+					
+					# recogniser part
+					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to gray
+
+					person, confidence = fr.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
+					cv2.putText(frame, person, (x+5, y-5), font, 1, (255,255,255), 2)
+					cv2.putText(frame, str(confidence), (x+5, y+h-5), font, 1, (255,255,0), 1)  
+
 			else:
 				print('No faces found.')
 				face_position_X.value, face_position_Y.value = (self.frame_center_X, self.frame_center_Y)
@@ -303,11 +314,11 @@ if __name__ == '__main__':
 		process_set_servos = Process(target=pi_face_detector.set_servos, args=(pan_angle, tilt_angle))
 
 		# store data
-	#	process_save_pan_tuning_process = Process(target=pi_face_detector.save_pan_tuning_process,
-	#		args=(tuning_time_data, tuning_error_data, tuning_angle_data))
+		# process_save_pan_tuning_process = Process(target=pi_face_detector.save_pan_tuning_process,
+		# 	args=(tuning_time_data, tuning_error_data, tuning_angle_data))
 				
-		process_save_tilt_tuning_process = Process(target=pi_face_detector.save_tilt_tuning_process,
-			args=(tuning_time_data, tuning_error_data, tuning_angle_data))
+		# process_save_tilt_tuning_process = Process(target=pi_face_detector.save_tilt_tuning_process,
+		# 	args=(tuning_time_data, tuning_error_data, tuning_angle_data))
 	
 		
 		# start all 4 processes
@@ -316,7 +327,7 @@ if __name__ == '__main__':
 		process_tilting.start()
 		process_set_servos.start()
 		#process_save_pan_tuning_process.start()
-		process_save_tilt_tuning_process.start()
+		# process_save_tilt_tuning_process.start()
 
 		# join all 4 processes
 		process_start_camera.join()
@@ -324,4 +335,4 @@ if __name__ == '__main__':
 		process_tilting.join()
 		process_set_servos.join()
 		#process_save_pan_tuning_process.join()
-		process_save_tilt_tuning_process.join()
+		# process_save_tilt_tuning_process.join()
