@@ -21,7 +21,6 @@ class PiFaceRecognition:
 	def __init__(self):
 		self.resolution = (900, 400)
 
-
 	def enroll_images(self, person, rpi=True):
 		"""
 		Loads a camera and takes a picture at every 'K' keep press.
