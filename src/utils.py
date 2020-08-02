@@ -115,29 +115,31 @@ def test_hardware():
 		time.sleep(0.01)
 
 if __name__ == '__main__':
-	# Test on Laptop
-	from imutils.video import VideoStream
-	import os
-	MODELS_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
-	# DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')	
+	# # Test on Laptop
+	# from imutils.video import VideoStream
+	# import os
+	# MODELS_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
+	# # DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')	
 
-	vs = VideoStream(src=1).start()
+	# vs = VideoStream(src=1).start()
 
-	face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
-	while True:
-		frame = vs.read()
-		objects = face_detector.extract_faces(frame)
+	# face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
+	# while True:
+	# 	frame = vs.read()
+	# 	objects = face_detector.extract_faces(frame)
 		
-		# print(object_locations)
-		if objects:
-			for centre, (x,y,w,h), neigbour, weights,  in objects:
-				print(neigbour, weights)
-				neigbour = str(neigbour[0])
-				weights = str(weights[0])
-				cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
-				cv2.putText(frame, neigbour, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
-				cv2.putText(frame, weights, (x+5, y+h+5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+	# 	# print(object_locations)
+	# 	if objects:
+	# 		for centre, (x,y,w,h), neigbour, weights,  in objects:
+	# 			print(neigbour, weights)
+	# 			neigbour = str(neigbour[0])
+	# 			weights = str(weights[0])
+	# 			cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
+	# 			cv2.putText(frame, neigbour, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+	# 			cv2.putText(frame, weights, (x+5, y+h+5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
 
 
-		cv2.imshow("Pan-Tilt Face Tracking", frame)
-		cv2.waitKey(1)
+	# 	cv2.imshow("Pan-Tilt Face Tracking", frame)
+	# 	cv2.waitKey(1)
+
+	test_hardware()
