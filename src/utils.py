@@ -13,17 +13,21 @@ class HaarFaceDetector:
 		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 		# detect all faces in the input frame
-		rects = self.detector.detectMultiScale(gray, scaleFactor=1.05,
+		objects = self.detector.detectMultiScale3(gray, scaleFactor=1.05,
 			minNeighbors=9, minSize=(30, 30),
-			flags=cv2.CASCADE_SCALE_IMAGE)
+			flags=cv2.CASCADE_SCALE_IMAGE,
+			outputRejectLevels=True
+		)
+
+		# print(objects)
 
 		# return centers of faces and boxes
-		if len(rects) == 0:
+		if len(objects) == 0:
 			return None
 		else:
 			center_and_rects = []
-			for rect in rects:
-				center_and_rects.append((self._get_center_of_rectangle(rect), rect))
+			for rect, neighbour, weight in zip(objects[0], objects[1], objects[2]):
+				center_and_rects.append((self._get_center_of_rectangle(rect), rect, neighbour, weight))
 			return center_and_rects
 	
 	@staticmethod
@@ -85,3 +89,55 @@ class PID:
 			self.kP * self.cP,
 			self.kI * self.cI,
 			self.kD * self.cD])
+
+from pantilthat import PanTilt
+import math
+def test_hardware():
+	"""
+	Test full range of motion as aswell as lights
+	"""
+	# start in the middle
+	# u shape to the top right
+	# straght down
+	# figure of eithe back to middle
+
+	aimer = PanTilt(
+		servo1_min=745,
+		servo1_max=2200,
+		servo2_min=580,
+		servo2_max=1910
+	)
+
+	for t in range(0, 90):
+		aimer.pan(t)
+		aimer.tilt(math.sin(t + 270) * 90)
+		t += 1
+		time.sleep(0.01)
+
+if __name__ == '__main__':
+	# Test on Laptop
+	from imutils.video import VideoStream
+	import os
+	MODELS_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
+	# DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')	
+
+	vs = VideoStream(src=1).start()
+
+	face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
+	while True:
+		frame = vs.read()
+		objects = face_detector.extract_faces(frame)
+		
+		# print(object_locations)
+		if objects:
+			for centre, (x,y,w,h), neigbour, weights,  in objects:
+				print(neigbour, weights)
+				neigbour = str(neigbour[0])
+				weights = str(weights[0])
+				cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
+				cv2.putText(frame, neigbour, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+				cv2.putText(frame, weights, (x+5, y+h+5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+
+
+		cv2.imshow("Pan-Tilt Face Tracking", frame)
+		cv2.waitKey(1)

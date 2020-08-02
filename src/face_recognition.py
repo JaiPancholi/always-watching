@@ -145,7 +145,7 @@ class PiFaceRecognition:
 			vs = VideoStream(usePiCamera=rpi).start()
 		else:
 			vs = VideoStream(src=1).start()
-
+		print('Starting')
 		time.sleep(2.0)
 
 		font = cv2.FONT_HERSHEY_SIMPLEX

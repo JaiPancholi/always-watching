@@ -1,5 +1,6 @@
 from pantilthat import PanTilt
 import pantilthat as pth
+
 from multiprocessing import Manager, Process
 from imutils.video import VideoStream
 
@@ -31,7 +32,9 @@ class PiFaceDetector:
 			-> aim at average of center of faces
 			-> move from one face to the next, staying on each face for n seconds
 	"""
-	def __init__(self):
+	def __init__(self, rpi=True):
+		self.rpi = rpi
+
 		# initialise constants
 		# pan/tilt constants
 		self.pan_min_degree = -90
@@ -69,7 +72,14 @@ class PiFaceDetector:
 			-> pixel coordinates of the center of the faces
 		"""
 		# start the video stream and wait for the camera to warm up
-		vs = VideoStream(usePiCamera=True, resolution=self.resolution).start()
+		# vs = VideoStream(usePiCamera=self.rpi, resolution=self.resolution).start()
+		print('Starting Camera')
+		if self.rpi:
+			print('lol')
+			vs = VideoStream(usePiCamera=self.rpi).start()
+		else:
+			print("lol2")
+			vs = VideoStream(src=1).start()
 		time.sleep(2.0)
 
 		# initialize the object center finder
@@ -283,11 +293,13 @@ def signal_handler(sig, frame):
 
 
 if __name__ == '__main__':
-	pi_face_detector = PiFaceDetector() 
-	pth.pan(10)
-	pth.tilt(-40)
+	# pi_face_detector = PiFaceDetector(rpi=True)
+	pi_face_detector = PiFaceDetector(rpi=False)
+	# pth.pan(10)
+	# pth.tilt(-40)
 
 	with Manager() as manager:
+		print('Start Manager')
 		# initialise tuning data variable holder
 		# tuning_data = manager.dict()
 		tuning_time_data = manager.list()
@@ -302,16 +314,17 @@ if __name__ == '__main__':
 		pan_angle = manager.Value("i", 0)
 		tilt_angle = manager.Value("i", 0)
 
+		print('Define process')
 		process_start_camera = Process(target=pi_face_detector.start_camera,
 			args=(obj_coord_X, obj_coord_Y))
 
-		process_panning = Process(target=pi_face_detector.pan_pid_process,
-			args=(pan_angle, obj_coord_X, tuning_time_data, tuning_error_data, tuning_angle_data))
+		# process_panning = Process(target=pi_face_detector.pan_pid_process,
+		# 	args=(pan_angle, obj_coord_X, tuning_time_data, tuning_error_data, tuning_angle_data))
 
-		process_tilting = Process(target=pi_face_detector.tilt_pid_process,
-			args=(tilt_angle, obj_coord_Y, tuning_time_data, tuning_error_data, tuning_angle_data))
+		# process_tilting = Process(target=pi_face_detector.tilt_pid_process,
+		# 	args=(tilt_angle, obj_coord_Y, tuning_time_data, tuning_error_data, tuning_angle_data))
 
-		process_set_servos = Process(target=pi_face_detector.set_servos, args=(pan_angle, tilt_angle))
+		# process_set_servos = Process(target=pi_face_detector.set_servos, args=(pan_angle, tilt_angle))
 
 		# store data
 		# process_save_pan_tuning_process = Process(target=pi_face_detector.save_pan_tuning_process,
@@ -322,17 +335,19 @@ if __name__ == '__main__':
 	
 		
 		# start all 4 processes
+		print('Start process.')
 		process_start_camera.start()
-		process_panning.start()
-		process_tilting.start()
-		process_set_servos.start()
-		#process_save_pan_tuning_process.start()
+		# process_panning.start()
+		# process_tilting.start()
+		# process_set_servos.start()
+		# process_save_pan_tuning_process.start()
 		# process_save_tilt_tuning_process.start()
 
 		# join all 4 processes
+		print('Join process.')
 		process_start_camera.join()
-		process_panning.join()
-		process_tilting.join()
-		process_set_servos.join()
-		#process_save_pan_tuning_process.join()
+		# process_panning.join()
+		# process_tilting.join()
+		# process_set_servos.join()
+		# process_save_pan_tuning_process.join()
 		# process_save_tilt_tuning_process.join()

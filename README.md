@@ -1,3 +1,30 @@
+# TODO IMPROVE CONFIDENCE OF FACE EXTRACTION
+# Remove so many start_camera functions
+# MAKE INTO ARG PARSE TYPE FORMAT
+    TO TRAIN RECOGNISER
+    TO TUNE PID
+    TO START CAMERA
+    TO RECORD VIDEOS OF PROCESS
+# TUNE PID BETTER
+
+# Write Up
+## Building The Pi
+## Setting up the Pi
+    - remote networking
+    - git / rsync
+    - testing the hardware
+## Detecting Faces
+    - Open CV vs. Deep Learning
+    - confidence levels with open cv
+    - Tuning the PIDs
+    - Multi processing
+## Recognising Faces
+    - Open CV vs. (face_recognition + SVM) vs. TensorFlow vs. Deep Learning
+    - On-the-fly face enrollment
+    - draw.io process flow
+    - Showing a specific light to certain faces
+
+
 # pi_face_tracker
 This is repository contains the software for a Raspberry Pi face tracking system. This system uses a Raspberry Pi as a mobile computer, Raspberry Pi Camera as an image capture method, a Pan Tilt hat as a method of aiming the camera, and a RGBW Neopixel LED strip as a light source / feedback mechanism. 
 
@@ -6,6 +33,7 @@ In the first stage of this project, I aim to be able to:
     - pan and tilt the camera such that a single face is always at the center of the screen
     - be able to recognise certain faces
     - be able to feedback personalised messages to different individuals
+
 
 in the stage 1.5:
     - train a new face using the camera
@@ -31,15 +59,32 @@ rsync -r face_tracker pi@192.168.0.55:Desktop/ --exclude=venv
 
 ## References
 https://towardsdatascience.com/real-time-object-tracking-with-tensorflow-raspberry-pi-and-pan-tilt-hat-2aeaef47e134
-    - Low FPS on basic RPI hardware
+    - Low FPS on basic RPI hardware with Tensorflow 
+
 https://www.pyimagesearch.com/2019/04/01/pan-tilt-face-tracking-with-a-raspberry-pi-and-opencv/
+    - OpenCV Face Detection and PID tuning
+        - THIS IS IN PLACE
 
 https://www.pyimagesearch.com/2018/09/24/opencv-face-recognition/
+    - OpenCV Face Detection and face_recognition Face Recognition
+        - STILL TOO SLOW PROBABLY
 
 https://www.pyimagesearch.com/2018/06/18/face-recognition-with-opencv-python-and-deep-learning/
+    - Background reading to above
 https://www.pyimagesearch.com/2018/06/25/raspberry-pi-face-recognition/
+    - Background reading to above
 https://www.pyimagesearch.com/2020/01/06/raspberry-pi-and-movidius-ncs-face-recognition/
+    - Background reading to above
+
 https://www.pyimagesearch.com/2018/06/11/how-to-build-a-custom-face-recognition-dataset/
+    - Image Enrollment
+        - THIS IS IN PLACE
+
+https://circuitdigest.com/microcontroller-projects/raspberry-pi-and-opencv-based-face-recognition-system
+    - OpenCV Face Recognition
+        - THIS IS IN PLACE
+https://www.instructables.com/id/Real-time-Face-Recognition-an-End-to-end-Project/
+
 
 ## Steps
 1. Setup Raspberry Pi to function with the Pan Tilt Module and Light
