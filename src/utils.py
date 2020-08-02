@@ -108,10 +108,12 @@ def test_hardware():
 		servo2_max=1910
 	)
 
-	for t in range(0, 90):
-		aimer.pan(t)
-		aimer.tilt(math.sin(t + 270) * 90)
-		t += 1
+	for t in range(0, 91):
+		# print(t, math.sin(math.radians(t) + math.radians(270)), math.sin(math.radians(t) + math.radians(270)) * 90)
+		x = t
+		y = math.sin(math.radians(t) + math.radians(270)) * 90
+		aimer.pan(x)
+		aimer.tilt(y)
 		time.sleep(0.01)
 
 if __name__ == '__main__':
