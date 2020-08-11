@@ -293,10 +293,10 @@ def signal_handler(sig, frame):
 
 
 if __name__ == '__main__':
-	# pi_face_detector = PiFaceDetector(rpi=True)
-	pi_face_detector = PiFaceDetector(rpi=False)
-	# pth.pan(10)
-	# pth.tilt(-40)
+	pi_face_detector = PiFaceDetector(rpi=True)
+	# pi_face_detector = PiFaceDetector(rpi=False)
+	pth.pan(10)
+	pth.tilt(-40)
 
 	with Manager() as manager:
 		print('Start Manager')
