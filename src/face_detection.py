@@ -300,12 +300,6 @@ if __name__ == '__main__':
 
 	with Manager() as manager:
 		print('Start Manager')
-		# initialise tuning data variable holder
-		# tuning_data = manager.dict()
-		tuning_time_data = manager.list()
-		tuning_error_data = manager.list()
-		tuning_angle_data = manager.list()
-
 		# set integer values for the object's (x, y)-coordinates
 		obj_coord_X = manager.Value("i", pi_face_detector.frame_center_X)
 		obj_coord_Y = manager.Value("i", pi_face_detector.frame_center_Y)
@@ -314,40 +308,45 @@ if __name__ == '__main__':
 		pan_angle = manager.Value("i", 0)
 		tilt_angle = manager.Value("i", 0)
 
+		# initialise tuning data variable holder to draw graphs
+		tuning_time_data = manager.list()
+		tuning_error_data = manager.list()
+		tuning_angle_data = manager.list()
+
 		print('Define process')
 		process_start_camera = Process(target=pi_face_detector.start_camera,
 			args=(obj_coord_X, obj_coord_Y))
 
-		# process_panning = Process(target=pi_face_detector.pan_pid_process,
-		# 	args=(pan_angle, obj_coord_X, tuning_time_data, tuning_error_data, tuning_angle_data))
+		process_panning = Process(target=pi_face_detector.pan_pid_process,
+			args=(pan_angle, obj_coord_X, tuning_time_data, tuning_error_data, tuning_angle_data))
 
-		# process_tilting = Process(target=pi_face_detector.tilt_pid_process,
-		# 	args=(tilt_angle, obj_coord_Y, tuning_time_data, tuning_error_data, tuning_angle_data))
+		process_tilting = Process(target=pi_face_detector.tilt_pid_process,
+			args=(tilt_angle, obj_coord_Y, tuning_time_data, tuning_error_data, tuning_angle_data))
 
-		# process_set_servos = Process(target=pi_face_detector.set_servos, args=(pan_angle, tilt_angle))
+		process_set_servos = Process(target=pi_face_detector.set_servos, args=(pan_angle, tilt_angle))
 
-		# store data
-		# process_save_pan_tuning_process = Process(target=pi_face_detector.save_pan_tuning_process,
-		# 	args=(tuning_time_data, tuning_error_data, tuning_angle_data))
+		store data
+		process_save_pan_tuning_process = Process(target=pi_face_detector.save_pan_tuning_process,
+			args=(tuning_time_data, tuning_error_data, tuning_angle_data))
 				
-		# process_save_tilt_tuning_process = Process(target=pi_face_detector.save_tilt_tuning_process,
-		# 	args=(tuning_time_data, tuning_error_data, tuning_angle_data))
+		process_save_tilt_tuning_process = Process(target=pi_face_detector.save_tilt_tuning_process,
+			args=(tuning_time_data, tuning_error_data, tuning_angle_data))
 	
 		
 		# start all 4 processes
 		print('Start process.')
 		process_start_camera.start()
-		# process_panning.start()
-		# process_tilting.start()
-		# process_set_servos.start()
-		# process_save_pan_tuning_process.start()
-		# process_save_tilt_tuning_process.start()
+		process_panning.start()
+		process_tilting.start()
+		process_set_servos.start()
+		process_save_pan_tuning_process.start()
+		process_save_tilt_tuning_process.start()
 
 		# join all 4 processes
 		print('Join process.')
 		process_start_camera.join()
-		# process_panning.join()
-		# process_tilting.join()
-		# process_set_servos.join()
-		# process_save_pan_tuning_process.join()
-		# process_save_tilt_tuning_process.join()
+		process_panning.join()
+		process_tilting.join()
+		process_set_servos.join()
+		process_save_pan_tuning_process.join()
+		process_save_tilt_tuning_process.join()
