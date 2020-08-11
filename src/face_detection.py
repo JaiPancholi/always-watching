@@ -75,10 +75,8 @@ class PiFaceDetector:
 		# vs = VideoStream(usePiCamera=self.rpi, resolution=self.resolution).start()
 		print('Starting Camera')
 		if self.rpi:
-			print('lol')
 			vs = VideoStream(usePiCamera=self.rpi).start()
 		else:
-			print("lol2")
 			vs = VideoStream(src=1).start()
 		time.sleep(2.0)
 
@@ -113,14 +111,13 @@ class PiFaceDetector:
 					# recogniser part
 					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to gray
 
-					person, confidence = fr.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
-					cv2.putText(frame, person, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
-					cv2.putText(frame, str(confidence), (x+5, y+h-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,0), 1)  
+					# person, confidence = fr.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
+					# cv2.putText(frame, person, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+					# cv2.putText(frame, str(confidence), (x+5, y+h-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,0), 1)  
 
 			else:
 				print('No faces found.')
 				face_position_X.value, face_position_Y.value = (self.frame_center_X, self.frame_center_Y)
-				# face_position_X.value, face_position_Y.value = (0, 0)
 
 			# display the frame to the screen
 			cv2.imshow("Pan-Tilt Face Tracking", frame)
@@ -239,8 +236,6 @@ class PiFaceDetector:
 				data_to_save['error'].append(error)
 				data_to_save['angle'].append(angle)
 
-			# print(data_to_save)
-			# print(tuning_time_data)
 			data_filepath = os.path.join(directory, f'{p}_{i}_{d}.json')
 			image_filepath = os.path.join(directory, f'{p}_{i}_{d}.png')
 
@@ -295,8 +290,8 @@ def signal_handler(sig, frame):
 if __name__ == '__main__':
 	pi_face_detector = PiFaceDetector(rpi=True)
 	# pi_face_detector = PiFaceDetector(rpi=False)
-	pth.pan(10)
-	pth.tilt(-40)
+	pth.pan(20)
+	pth.tilt(-25)
 
 	with Manager() as manager:
 		print('Start Manager')
@@ -325,7 +320,7 @@ if __name__ == '__main__':
 
 		process_set_servos = Process(target=pi_face_detector.set_servos, args=(pan_angle, tilt_angle))
 
-		store data
+		# store data
 		process_save_pan_tuning_process = Process(target=pi_face_detector.save_pan_tuning_process,
 			args=(tuning_time_data, tuning_error_data, tuning_angle_data))
 				
