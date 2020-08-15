@@ -84,7 +84,7 @@ class PiFaceDetector:
 		face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
 
 		# initialise the recogniser
-		fr = PiFaceRecognition()
+		# fr = PiFaceRecognition()
 
 		while True:
 			# grab the frame from the threaded video stream and flip it
@@ -102,18 +102,18 @@ class PiFaceDetector:
 				print('{} faces found.'.format(len(object_locations)))
 				(face_position_X.value, face_position_Y.value) = object_locations[0][0]
 				# ((objX.value, objY.value), rect) = objectLoc
-				
+				print(object_locations)
 				# extract the bounding box and draw it
-				for pos, rect in object_locations:
+				for pos, rect, neighbour, weight in object_locations:
 					(x, y, w, h) = rect
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 					
-					# recogniser part
-					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to gray
+				# 	# recogniser part
+				# 	gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to gray
 
-					# person, confidence = fr.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
-					# cv2.putText(frame, person, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
-					# cv2.putText(frame, str(confidence), (x+5, y+h-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,0), 1)  
+				# 	# person, confidence = fr.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
+				# 	# cv2.putText(frame, person, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+				# 	# cv2.putText(frame, str(confidence), (x+5, y+h-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,0), 1)  
 
 			else:
 				print('No faces found.')
@@ -146,7 +146,6 @@ class PiFaceDetector:
 			tuning_time_data.append(pid.prevTime)
 			tuning_error_data.append(servo_angle.value)
 			tuning_angle_data.append(error)
-			# print(tuning_time_data)
 		
 			# print('error: ', error, 'new_angle: ', servo_angle.value)
 			# if servo_angle.value <= 10:
@@ -200,22 +199,16 @@ class PiFaceDetector:
 			pan_angle_this = -1 * pan_angle.value
 			tilt_angle_this = -1 * tilt_angle.value
 
-			# # if pan_angle_this != 0:
-			# if pan_angle_this >= -90 and pan_angle_this <= 90 and pan_angle_this!=0:
-			# 	print('pan_angle_this', pan_angle_this, type(pan_angle_this))
-			# 	# pth.pan(pan_angle_this)
-			# 	self.aimer.pan(pan_angle_this)
-
 			# if the pan angle is within the range, pan
 			if self._angle_in_range(pan_angle_this):
-				print('Pan in range', pan_angle_this)
+				# print('Pan in range', pan_angle_this)
 				self.aimer.pan(pan_angle_this)
 			# else:
 			# 	print('Pan not in range', pan_angle_this)
 
 			# if the tilt angle is within the range, tilt
 			if self._angle_in_range(tilt_angle_this):
-				print('Tilt in range', tilt_angle_this)
+				# print('Tilt in range', tilt_angle_this)
 				self.aimer.tilt(tilt_angle_this)
 			# else:
 			# 	print('Tilt not in range', tilt_angle_this)
@@ -290,8 +283,15 @@ def signal_handler(sig, frame):
 if __name__ == '__main__':
 	pi_face_detector = PiFaceDetector(rpi=True)
 	# pi_face_detector = PiFaceDetector(rpi=False)
-	pth.pan(20)
-	pth.tilt(-25)
+	# pth.pan(20)
+	# pth.tilt(-25)
+
+	start_pan = -30
+	start_tilt = 20
+	pth.pan(start_pan)
+	pth.tilt(start_tilt)
+	# pth.set_all(255, 255, 255, 10)
+	# pth.show()
 
 	with Manager() as manager:
 		print('Start Manager')
@@ -300,8 +300,8 @@ if __name__ == '__main__':
 		obj_coord_Y = manager.Value("i", pi_face_detector.frame_center_Y)
 
 		# pan and tilt values will be managed by independed PIDs
-		pan_angle = manager.Value("i", 0)
-		tilt_angle = manager.Value("i", 0)
+		pan_angle = manager.Value("i", start_pan)
+		tilt_angle = manager.Value("i", start_tilt)
 
 		# initialise tuning data variable holder to draw graphs
 		tuning_time_data = manager.list()
