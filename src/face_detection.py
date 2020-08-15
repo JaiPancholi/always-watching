@@ -296,7 +296,7 @@ if __name__ == '__main__':
 	# pth.tilt(-25)
 
 	start_pan = 0
-	start_tilt = 10
+	start_tilt = 30
 	pth.pan(start_pan)
 	pth.tilt(start_tilt)
 	# pth.set_all(255, 255, 255, 10)
