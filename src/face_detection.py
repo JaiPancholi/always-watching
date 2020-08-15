@@ -43,14 +43,17 @@ class PiFaceDetector:
 		self.tilt_max_degree = 90
 
 		# camera constants
-		self.resolution = (900, 400)
+		self.resolution = (912, 400)
 		self.frame_center_X = self.resolution[0] / 2
 		self.frame_center_Y = self.resolution[1] / 2
 
 		# pid constants
-		self.pan_p = 0.025
+		self.pan_p = 0.04
 		self.pan_i = 0.04
 		self.pan_d = 0.00
+		# self.pan_p = 0.025
+		# self.pan_i = 0.04
+		# self.pan_d = 0.00
 		self.tilt_p = 0.025
 		self.tilt_i = 0.04
 		self.tilt_d = 0.00
@@ -75,9 +78,9 @@ class PiFaceDetector:
 		# vs = VideoStream(usePiCamera=self.rpi, resolution=self.resolution).start()
 		print('Starting Camera')
 		if self.rpi:
-			vs = VideoStream(usePiCamera=self.rpi).start()
+			vs = VideoStream(usePiCamera=self.rpi, resolution=self.resolution).start()
 		else:
-			vs = VideoStream(src=1).start()
+			vs = VideoStream(src=1, resolution=self.resolution).start()
 		time.sleep(2.0)
 
 		# initialize the object center finder
@@ -99,10 +102,9 @@ class PiFaceDetector:
 			object_locations = face_detector.extract_faces(frame)
 			# get first face for now
 			if object_locations:
-				print('{} faces found.'.format(len(object_locations)))
+				# print('{} faces found.'.format(len(object_locations)))
 				(face_position_X.value, face_position_Y.value) = object_locations[0][0]
-				# ((objX.value, objY.value), rect) = objectLoc
-				print(object_locations)
+				# print(object_locations[0][0])
 				# extract the bounding box and draw it
 				for pos, rect, neighbour, weight in object_locations:
 					(x, y, w, h) = rect
@@ -138,6 +140,7 @@ class PiFaceDetector:
 		while True:
 			# calculate the error
 			error = center_coord - obj_coord.value
+			print(center_coord, obj_coord.value, error)
 
 			# update the value
 			servo_angle.value = pid.update(error)
@@ -193,7 +196,7 @@ class PiFaceDetector:
 		signal.signal(signal.SIGINT, signal_handler)
 		
 		while True:
-			time.sleep(0.05)
+			# time.sleep(0.05)
 
 			# the pan and tilt angles are reversed
 			pan_angle_this = -1 * pan_angle.value
@@ -242,7 +245,6 @@ class PiFaceDetector:
 			plt.title(f'{p}_{i}_{d}.png')
 			plt.savefig(image_filepath)
 
-
 	
 	def save_pan_tuning_process(self, tuning_time_data, tuning_error_data, tuning_angle_data):
 		self._save_tuning_process(
@@ -286,8 +288,8 @@ if __name__ == '__main__':
 	# pth.pan(20)
 	# pth.tilt(-25)
 
-	start_pan = -30
-	start_tilt = 20
+	start_pan = 0
+	start_tilt = 10
 	pth.pan(start_pan)
 	pth.tilt(start_tilt)
 	# pth.set_all(255, 255, 255, 10)
@@ -332,16 +334,16 @@ if __name__ == '__main__':
 		print('Start process.')
 		process_start_camera.start()
 		process_panning.start()
-		process_tilting.start()
+		# process_tilting.start()
 		process_set_servos.start()
 		process_save_pan_tuning_process.start()
-		process_save_tilt_tuning_process.start()
+		# process_save_tilt_tuning_process.start()
 
 		# join all 4 processes
 		print('Join process.')
 		process_start_camera.join()
 		process_panning.join()
-		process_tilting.join()
+		# process_tilting.join()
 		process_set_servos.join()
 		process_save_pan_tuning_process.join()
-		process_save_tilt_tuning_process.join()
+		# process_save_tilt_tuning_process.join()
