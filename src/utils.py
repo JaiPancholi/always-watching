@@ -210,8 +210,8 @@ if __name__ == '__main__':
     # 			cv2.putText(frame, weights, (x+5, y+h+5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
 
 
-    # 	cv2.imshow("Pan-Tilt Face Tracking", frame)
-    # 	cv2.waitKey(1)
+    	# cv2.imshow("Pan-Tilt Face Tracking", frame)
+    	# cv2.waitKey(1)
 
     # test_motion()
     test_lights()
