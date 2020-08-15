@@ -20,8 +20,6 @@ import json
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# TODO return to (pan, tilt) = (0, 0)
-
 class PiFaceDetector:
 	"""
 	Aim a Raspberry Pi camera at one or more faces.
@@ -157,6 +155,7 @@ class PiFaceDetector:
 			tuning_error_data.append(servo_angle.value)
 			tuning_angle_data.append(error)
 		
+			# For showing lights 
 			# print('error: ', error, 'new_angle: ', servo_angle.value)
 			# if servo_angle.value <= 10:
 			# 	pth.set_all(255, 255, 0)
@@ -203,8 +202,6 @@ class PiFaceDetector:
 		signal.signal(signal.SIGINT, signal_handler)
 		
 		while True:
-			# time.sleep(0.05)
-
 			# the pan and tilt angles are reversed
 			pan_angle_this = -1 * pan_angle.value
 			tilt_angle_this = -1 * tilt_angle.value
@@ -213,15 +210,11 @@ class PiFaceDetector:
 			if self._angle_in_range(pan_angle_this):
 				# print('Pan in range', pan_angle_this)
 				self.aimer.pan(pan_angle_this)
-			# else:
-			# 	print('Pan not in range', pan_angle_this)
 
 			# if the tilt angle is within the range, tilt
 			if self._angle_in_range(tilt_angle_this):
 				# print('Tilt in range', tilt_angle_this)
 				self.aimer.tilt(tilt_angle_this)
-			# else:
-			# 	print('Tilt not in range', tilt_angle_this)
 
 
 	def _save_tuning_process(self, p, i, d, tuning_time_data, tuning_error_data, tuning_angle_data, directory):
@@ -292,15 +285,11 @@ def signal_handler(sig, frame):
 if __name__ == '__main__':
 	pi_face_detector = PiFaceDetector(rpi=True)
 	# pi_face_detector = PiFaceDetector(rpi=False)
-	# pth.pan(20)
-	# pth.tilt(-25)
 
 	start_pan = 0
 	start_tilt = 30
 	pth.pan(start_pan)
 	pth.tilt(start_tilt)
-	# pth.set_all(255, 255, 255, 10)
-	# pth.show()
 
 	with Manager() as manager:
 		print('Start Manager')
@@ -343,8 +332,8 @@ if __name__ == '__main__':
 		process_panning.start()
 		process_tilting.start()
 		process_set_servos.start()
-		# process_save_pan_tuning_process.start()
-		# process_save_tilt_tuning_process.start()
+		process_save_pan_tuning_process.start()
+		process_save_tilt_tuning_process.start()
 
 		# join all 4 processes
 		print('Join process.')
@@ -352,5 +341,5 @@ if __name__ == '__main__':
 		process_panning.join()
 		process_tilting.join()
 		process_set_servos.join()
-		# process_save_pan_tuning_process.join()
-		# process_save_tilt_tuning_process.join()
+		process_save_pan_tuning_process.join()
+		process_save_tilt_tuning_process.join()
