@@ -89,6 +89,12 @@ class PiFaceDetector:
 		# initialise the recogniser
 		# fr = PiFaceRecognition()
 
+		# start recording
+		filename = os.path.join(DATA_DIRECTORY, 'recordings', '{}.avi'.format(time.time()))
+		cv2.VideoWriter_fourcc(*'MJPG')
+		fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+		out = cv2.VideoWriter(filename, fourcc, 20.0, self.resolution)
+
 		while True:
 			# grab the frame from the threaded video stream and flip it
 			# vertically (since our camera was upside down)
@@ -123,6 +129,7 @@ class PiFaceDetector:
 
 			# display the frame to the screen
 			cv2.imshow("Pan-Tilt Face Tracking", frame)
+			out.write(frame)
 			cv2.waitKey(1)
 
 
@@ -334,16 +341,16 @@ if __name__ == '__main__':
 		print('Start process.')
 		process_start_camera.start()
 		process_panning.start()
-		# process_tilting.start()
+		process_tilting.start()
 		process_set_servos.start()
-		process_save_pan_tuning_process.start()
+		# process_save_pan_tuning_process.start()
 		# process_save_tilt_tuning_process.start()
 
 		# join all 4 processes
 		print('Join process.')
 		process_start_camera.join()
 		process_panning.join()
-		# process_tilting.join()
+		process_tilting.join()
 		process_set_servos.join()
-		process_save_pan_tuning_process.join()
+		# process_save_pan_tuning_process.join()
 		# process_save_tilt_tuning_process.join()

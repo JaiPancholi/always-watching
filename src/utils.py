@@ -214,4 +214,6 @@ if __name__ == '__main__':
     	# cv2.waitKey(1)
 
     # test_motion()
-    test_lights()
+    # test_lights()
+    import os
+    import so
