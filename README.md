@@ -54,7 +54,12 @@ In the fourth stage of this project:
 ```sh
 scp -r !(venv) face_tracker pi@192.168.0.55:Desktop/face_tracker
 rsync -r face_tracker pi@192.168.0.55:Desktop/ --exclude=venv
+
+# copy faces
+scp -r pi@192.168.1.192:Desktop/face_tracker/data/faces/alleeya .
 ```
+
+
 
 <!-- ## References
 https://towardsdatascience.com/real-time-object-tracking-with-tensorflow-raspberry-pi-and-pan-tilt-hat-2aeaef47e134

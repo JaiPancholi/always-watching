@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 
 .DS_Store
+
+git remote set-url origin https://github.com/JaiPancholi/always-watching.git
+faces

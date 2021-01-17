@@ -33,7 +33,7 @@ class PiFaceRecognition:
 			os.makedirs(image_directory)
 		return image_directory
 
-	def enroll_images(self, person, rpi=True):
+	def enroll_images(self, person, rpi=True, infer_current_faces=False):
 		"""
 		Loads a camera and takes a picture at every 'K' keep press.
 		"""
@@ -63,7 +63,12 @@ class PiFaceRecognition:
 			# Extact and draw faces
 			rects = self.haar_face_detector.extract_faces(frame)
 			if rects:
-				for centre, (x,y,w,h) in rects:
+				for centre, (x,y,w,h), _, _ in rects:
+					if infer_current_faces:
+						gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+						person, confidence = self.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
+						cv2.putText(frame, person, (x+5, y-5), font, 1, (255,255,255), 2)
+						cv2.putText(frame, str(confidence), (x+5, y+h-5), font, 1, (255,255,0), 1)  
 					cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
 
 			cv2.imshow('Frame', frame)
@@ -72,7 +77,7 @@ class PiFaceRecognition:
 			# so we can later process it and use it for face recognition
 			if key == ord("k"):
 				if rects:
-					for centre, (x,y,w,h) in rects:
+					for centre, (x,y,w,h), _, _ in rects:
 						frame = frame[y:y+h,x:x+w]
 						image_path = os.path.join(image_directory, f'{total}.jpg')
 						cv2.imwrite(image_path, frame)
@@ -105,6 +110,8 @@ class PiFaceRecognition:
 			# load images into array
 			person_directory = os.path.join(faces_directory, person_folder)
 			for image_name in os.listdir(person_directory):
+				if image_name == '.DS_Store':
+					continue
 				image_path = os.path.join(person_directory, image_name)
 				img = Image.open(image_path).convert('L') # convert it to grayscale
 				img_array = np.array(img, 'uint8')
@@ -192,70 +199,6 @@ class PiFaceRecognition:
 	# 	cv2.destroyAllWindows()
 	# 	vs.stop()
 
-	def add_persons(self, rpi=False):
-		# # initialize the object center finder
-		# self.haar_face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
-
-		# # start camera, giving time to warm up
-		# print('Starting video stream...')
-		# if rpi:
-		# 	vs = VideoStream(usePiCamera=rpi).start()
-		# else:
-		# 	vs = VideoStream(src=1).start()
-
-		# time.sleep(2.0)
-
-		aimer = PanTilt(
-			servo1_min=745,
-			servo1_max=2200,
-			servo2_min=580,
-			servo2_max=1910
-		)
-
-		faces_still_to_train = True
-		while faces_still_to_train:
-			faces_still_to_train = self.add_person(aimer)
-			print('lol')
-			time.sleep(10)
-
-	def add_person(self, aimer):
-		"""
-		1. prompt user with name of face to add
-		2. give user ability to pan-tilt camera
-		3. give user ability to capture image from camera
-			extract face
-			give user ability to 'accept' or 'deny' face extraction
-		4. give user ability to capture new face or stop capturing and close gracefully.
-		"""
-		name = input('Enter the name of the person to train: ')
-		print()
-		print('You have typed ', name)
-
-		while True:
-			key = keyboard.read_key()
-			if key == 'up':
-				self.aimer.tilt(5)
-			if key == 'down':
-				self.aimer.tilt(-5)
-			if key == 'left':
-				self.aimer.pan(5)
-			if key == 'right':
-				self.aimer.pan(-5)
-			else:
-				break
-
-			# sleep
-			# if keyboard.is_pressed('q'):  # if key 'q' is pressed 
-			# 	print('You Pressed A Key!')
-
-
-
-
-	# cv2.imshow('camera',img) 
-	# k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
-	# if k == 27:
-	#     break
-
 	# def train_embedding(self):
 	#     pass
 
@@ -291,4 +234,4 @@ if __name__ == '__main__':
 	# fr.enroll_images('jai', rpi=False)
 	# fr.train_lbph_face_recogniser()
 	# fr.start_camera(rpi=False)
-	fr.add_persons()
+	fr.enroll_images('noone', infer_current_faces=True)

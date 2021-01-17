@@ -7,3 +7,4 @@ numpy
 imutils
 pantilthat
 Pillow
+opencv-contrib-python
