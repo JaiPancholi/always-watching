@@ -5,6 +5,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODELS_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
 DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 from utils import HaarFaceDetector
+from pantilthat import PanTilt
+import keyboard
 
 import time
 import cv2
@@ -141,57 +143,82 @@ class PiFaceRecognition:
 
 		return index_to_person[face_index], confidence
 
-	def start_camera(self, rpi=True):
-		# initialize the object center finder
-		self.haar_face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
+	# def start_camera(self, rpi=True):
+	# 	# initialize the object center finder
+	# 	self.haar_face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
 
-		# start camera, giving time to warm up
-		print('Starting video stream...')
-		if rpi:
-			vs = VideoStream(usePiCamera=rpi).start()
-		else:
-			vs = VideoStream(src=1).start()
-		print('Starting')
-		time.sleep(2.0)
+	# 	# start camera, giving time to warm up
+	# 	print('Starting video stream...')
+	# 	if rpi:
+	# 		vs = VideoStream(usePiCamera=rpi).start()
+	# 	else:
+	# 		vs = VideoStream(src=1).start()
+	# 	print('Starting')
+	# 	time.sleep(2.0)
 
-		font = cv2.FONT_HERSHEY_SIMPLEX
+	# 	font = cv2.FONT_HERSHEY_SIMPLEX
 
-		while True:
-			frame = vs.read()
+	# 	while True:
+	# 		frame = vs.read()
 
-			if rpi:
-				frame = cv2.flip(frame, -1) # flip video image vertically
+	# 		if rpi:
+	# 			frame = cv2.flip(frame, -1) # flip video image vertically
 
-			# get key
-			key = cv2.waitKey(1) & 0xFF
+	# 		# get key
+	# 		key = cv2.waitKey(1) & 0xFF
 
-			# Extact and draw faces
-			rects = self.haar_face_detector.extract_faces(frame)
-			if rects:
-				for centre, (x,y,w,h) in rects:
-					cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
+	# 		# Extact and draw faces
+	# 		rects = self.haar_face_detector.extract_faces(frame)
+	# 		if rects:
+	# 			for centre, (x,y,w,h) in rects:
+	# 				cv2.rectangle(frame, (x,y), (x+w,y+h), (255,255,0), 2)
 
-					# convert to gray
-					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	# 				# convert to gray
+	# 				gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-					person, confidence = self.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
-					cv2.putText(frame, person, (x+5, y-5), font, 1, (255,255,255), 2)
-					cv2.putText(frame, str(confidence), (x+5, y+h-5), font, 1, (255,255,0), 1)  
+	# 				person, confidence = self.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
+	# 				cv2.putText(frame, person, (x+5, y-5), font, 1, (255,255,255), 2)
+	# 				cv2.putText(frame, str(confidence), (x+5, y+h-5), font, 1, (255,255,0), 1)  
 
-			# show image
-			cv2.imshow('Frame', frame)
+	# 		# show image
+	# 		cv2.imshow('Frame', frame)
 
-			# if the `q` key was pressed, break from the loop
-			if key == ord("q"):
-				break
+	# 		# if the `q` key was pressed, break from the loop
+	# 		if key == ord("q"):
+	# 			break
 
-		# print the total faces saved and do a bit of cleanup
-		print('{} face images stored'.format(total))
-		cv2.destroyAllWindows()
-		vs.stop()
+	# 	# print the total faces saved and do a bit of cleanup
+	# 	print('{} face images stored'.format(total))
+	# 	cv2.destroyAllWindows()
+	# 	vs.stop()
 
+	def add_persons(self, rpi=False):
+		# # initialize the object center finder
+		# self.haar_face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
 
-	def add_face(self):
+		# # start camera, giving time to warm up
+		# print('Starting video stream...')
+		# if rpi:
+		# 	vs = VideoStream(usePiCamera=rpi).start()
+		# else:
+		# 	vs = VideoStream(src=1).start()
+
+		# time.sleep(2.0)
+
+		aimer = PanTilt(
+			servo1_min=745,
+			servo1_max=2200,
+			servo2_min=580,
+			servo2_max=1910
+		)
+
+		faces_still_to_train = True
+		while faces_still_to_train:
+			faces_still_to_train = self.add_person(aimer)
+			print('lol')
+			time.sleep(10)
+
+	def add_person(self, aimer):
 		"""
 		1. prompt user with name of face to add
 		2. give user ability to pan-tilt camera
@@ -204,13 +231,30 @@ class PiFaceRecognition:
 		print()
 		print('You have typed ', name)
 
+		while True:
+			key = keyboard.read_key()
+			if key == 'up':
+				self.aimer.tilt(5)
+			if key == 'down':
+				self.aimer.tilt(-5)
+			if key == 'left':
+				self.aimer.pan(5)
+			if key == 'right':
+				self.aimer.pan(-5)
+			else:
+				break
+
+			# sleep
+			# if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+			# 	print('You Pressed A Key!')
 
 
 
-    # cv2.imshow('camera',img) 
-    # k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
-    # if k == 27:
-    #     break
+
+	# cv2.imshow('camera',img) 
+	# k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
+	# if k == 27:
+	#     break
 
 	# def train_embedding(self):
 	#     pass
@@ -247,4 +291,4 @@ if __name__ == '__main__':
 	# fr.enroll_images('jai', rpi=False)
 	# fr.train_lbph_face_recogniser()
 	# fr.start_camera(rpi=False)
-	fr.add_face()
+	fr.add_persons()
