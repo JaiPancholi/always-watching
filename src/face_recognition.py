@@ -21,15 +21,21 @@ class PiFaceRecognition:
 	def __init__(self):
 		self.resolution = (900, 400)
 
-	def enroll_images(self, person, rpi=True):
+	def _set_or_get_person_directory(self, person):
 		"""
-		Loads a camera and takes a picture at every 'K' keep press.
+		Create if training folder does not exists.
 		"""
-		# create folder if not exists
 		image_directory = os.path.join(DATA_DIRECTORY, 'faces', person)
 		if not os.path.exists(image_directory):
 			print('Directory does not exist. Creating directroy for ', person)
 			os.makedirs(image_directory)
+		return image_directory
+
+	def enroll_images(self, person, rpi=True):
+		"""
+		Loads a camera and takes a picture at every 'K' keep press.
+		"""
+		image_directory = self._set_or_get_person_directory(person)
 
 		# initialize the object center finder
 		self.haar_face_detector = HaarFaceDetector(os.path.join(MODELS_DIRECTORY, 'haarcascade_frontalface_default.xml'))
@@ -184,6 +190,23 @@ class PiFaceRecognition:
 		cv2.destroyAllWindows()
 		vs.stop()
 
+
+	def add_face(self):
+		"""
+		1. prompt user with name of face to add
+		2. give user ability to pan-tilt camera
+		3. give user ability to capture image from camera
+			extract face
+			give user ability to 'accept' or 'deny' face extraction
+		4. give user ability to capture new face or stop capturing and close gracefully.
+		"""
+		name = input('Enter the name of the person to train: ')
+		print()
+		print('You have typed ', name)
+
+
+
+
     # cv2.imshow('camera',img) 
     # k = cv2.waitKey(10) & 0xff # Press 'ESC' for exiting video
     # if k == 27:
@@ -223,4 +246,5 @@ if __name__ == '__main__':
 	fr = PiFaceRecognition()
 	# fr.enroll_images('jai', rpi=False)
 	# fr.train_lbph_face_recogniser()
-	fr.start_camera(rpi=False)
+	# fr.start_camera(rpi=False)
+	fr.add_face()

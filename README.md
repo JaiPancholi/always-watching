@@ -108,3 +108,24 @@ raspistill -n -q 10 # specify % https://www.raspberrypi.org/forums/viewtopic.php
 # stich together with
 ffmpeg -r 24 -pattern_type glob -i '*.jpg' -s hd1080 -vcodec libx264 timelapse.mp4
  -->
+
+
+<!-- Building Works
+# 1 every second for an hour
+raspistill -vf -hf -w 640 -h 480 -t 3600000 -tl 1000 -o ./timelamp/building/image%04d.jpg # specify dimenions
+
+# 1 every second for 50 seconds
+raspistill -vf -hf -w 640 -h 480 -t 50000 -tl 1000 -o ./timelamp/building/image%04d.jpg # specify dimenions
+
+# 1 every 5 minutes for 6 hours
+raspistill -vf -hf -w 640 -h 480 -t 21600000 -tl 300000 -o ./timelamp/building/image%04d.jpg # specify dimenions
+
+# 1 every 5 minutes for 6 hours - HD
+raspistill -vf -hf -w 1920 -h 1080 -t 21600000 -tl 300000 -o ./timelamp/building/image%04d.jpg # specify dimenions
+
+ffmpeg -r 24 -pattern_type glob -i './timelamp/building_0/*.jpg' -s hd1080 -vcodec libx264 timelapse.mp4
+
+ffmpeg -r 3 -pattern_type glob -i './timelamp/building_0/*.jpg' -s hd1080 -vcodec libx264 timelapse.mp4
+ -->
+
+ffmpeg -r 3 -pattern_type glob -i './timelamp/building_*/*.jpg' -s hd1080 -vcodec libx264 timelapse.mp4
