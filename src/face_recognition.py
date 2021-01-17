@@ -56,8 +56,8 @@ class PiFaceRecognition:
 		if purpose == 'enroll' and person is None:
 			raise ValueError('Pass value for keyword "purpose" if purpose is "enroll"')
 
-		image_directory = self._set_or_get_person_directory(person)
-
+		if purpose == 'enroll':
+			image_directory = self._set_or_get_person_directory(person)
 		total = 0
 
 		while True:
@@ -202,11 +202,11 @@ if __name__ == '__main__':
 	args = parse_args()
 	rpi = True
 	if args.purpose == 'infer':
-		# fr = PiFaceRecognition().start_camera(purpose=args.purpose, rpi=rpi)
+		fr = PiFaceRecognition().start_camera(purpose=args.purpose, rpi=rpi)
 		pass
 	elif args.purpose == 'enroll':
 		person = args.person
-		# fr = PiFaceRecognition().start_camera(purpose=args.purpose, person=person, rpi=rpi)
+		fr = PiFaceRecognition().start_camera(purpose=args.purpose, person=person, rpi=rpi)
 		pass
 	elif args.purpose == 'train':
 		PiFaceRecognition.train_lbph_face_recogniser()
