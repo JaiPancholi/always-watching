@@ -124,9 +124,7 @@ class PiFaceRecognition:
 					continue
 				image_path = os.path.join(person_directory, image_name)
 				# img = Image.open(image_path).convert('L') # convert it to grayscale
-				img = Image.open(image_path)
-				img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # convert to gray
-
+				img = cv2.imread(image_path,0) # reads image 'opencv-logo.png' as grayscale
 				img_array = np.array(img, 'uint8')
 				faces.append(img_array)
 				labels.append(people[person_folder])
