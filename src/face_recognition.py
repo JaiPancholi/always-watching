@@ -46,7 +46,6 @@ class PiFaceRecognition:
 			os.makedirs(image_directory)
 		return image_directory
 
-	# def enroll_images(self, person, rpi=True, infer_current_faces=False):
 	def start_camera(self, purpose=None, person=None, rpi=True):
 		"""
 		Loads a camera and takes a picture at every 'K' keep press.
@@ -142,8 +141,8 @@ class PiFaceRecognition:
 
 		print('Recogniser trained and saved.')
 
-
-	def infer_lbph_face_recogniser(self, face):
+	@staticmethod
+	def infer_lbph_face_recogniser(face):
 		# load model
 		recognizer = cv2.face.LBPHFaceRecognizer_create()
 		model_path = os.path.join(MODELS_DIRECTORY, 'custom-opencv.yml')
@@ -162,15 +161,6 @@ class PiFaceRecognition:
 
 		return index_to_person[face_index], confidence
 
-	# def train_embedding(self):
-	#     pass
-
-	# def infer_embedding(self):
-	#     pass
-
-	# def train_svm(self):
-	#     pass
-
 
 import argparse
 def parse_args():
@@ -180,9 +170,7 @@ def parse_args():
 	parser.add_argument('--person', help='sum the integers (default: find the max)')
 
 	args = parser.parse_args()
-	print(args)
 	return args
-
 
 # Build Recogniser
 	# V1
@@ -194,11 +182,6 @@ def parse_args():
 		# https://www.hackster.io/mjrobot/real-time-face-recognition-an-end-to-end-project-a10826
 
 if __name__ == '__main__':
-	# fr = PiFaceRecognition()
-	# # fr.enroll_images('jai', rpi=True)
-	# # fr.enroll_images('alleeya', rpi=True)
-	# # fr.train_lbph_face_recogniser()
-	# fr.enroll_images('noone', infer_current_faces=True)
 	args = parse_args()
 	rpi = True
 	if args.purpose == 'infer':

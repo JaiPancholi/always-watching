@@ -20,6 +20,9 @@ import json
 import matplotlib.pyplot as plt
 import pandas as pd
 
+pth.light_mode(pth.WS2812)
+pth.light_type(pth.GRBW)
+
 class PiFaceDetector:
 	"""
 	Aim a Raspberry Pi camera at one or more faces.
@@ -72,6 +75,9 @@ class PiFaceDetector:
 			-> pixel coordinates of the center of the frame
 			-> pixel coordinates of the center of the faces
 		"""
+		# signal trap to handle keyboard interrupt
+		signal.signal(signal.SIGINT, signal_handler)
+
 		# start the video stream and wait for the camera to warm up
 		# vs = VideoStream(usePiCamera=self.rpi, resolution=self.resolution).start()
 		print('Starting Camera')
@@ -104,6 +110,8 @@ class PiFaceDetector:
 
 			# find the object's location
 			object_locations = face_detector.extract_faces(frame)
+			people = [] # for setting colour
+
 			# get first face for now
 			if object_locations:
 				# print('{} faces found.'.format(len(object_locations)))
@@ -114,16 +122,33 @@ class PiFaceDetector:
 					(x, y, w, h) = rect
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 					
-				# 	# recogniser part
-				# 	gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to gray
+					# recogniser part
+					gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # convert to gray
 
-				# 	# person, confidence = fr.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
-				# 	# cv2.putText(frame, person, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
-				# 	# cv2.putText(frame, str(confidence), (x+5, y+h-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,0), 1)  
+					person, confidence = PiFaceRecognition.infer_lbph_face_recogniser(gray_frame[y:y+h,x:x+w])
+					people.append(person)
+					cv2.putText(frame, person, (x+5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
+					cv2.putText(frame, str(confidence), (x+5, y+h-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,0), 1)  
 
 			else:
 				print('No faces found.')
 				face_position_X.value, face_position_Y.value = (self.frame_center_X, self.frame_center_Y)
+
+			if len(people) > 1:
+				# set to orange
+				pth.set_all(255, 127, 80, 50)
+				pth.show()
+			elif 'jai' in people:
+				# set to green
+				pth.set_all(173, 255, 47, 50)
+				pth.show()
+			elif 'alleeya' in people:
+				# set to purple
+				pth.set_all(221, 160, 221, 50)
+				pth.show()
+			else:
+				pth.clear()
+        		pth.show()
 
 			# display the frame to the screen
 			cv2.imshow("Pan-Tilt Face Tracking", frame)
@@ -145,7 +170,7 @@ class PiFaceDetector:
 		while True:
 			# calculate the error
 			error = center_coord - obj_coord.value
-			print(center_coord, obj_coord.value, error)
+			print(center_coord, obj_coord.value, error, pid.update(error))
 
 			# update the value
 			servo_angle.value = pid.update(error)
