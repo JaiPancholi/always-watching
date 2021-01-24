@@ -49,12 +49,12 @@ class PiFaceDetector:
 		self.frame_center_Y = self.resolution[1] / 2
 
 		# pid constants
-		self.pan_p = 0.04
+		self.pan_p = 0.025
 		self.pan_i = 0.04
 		self.pan_d = 0.00
-		# self.pan_p = 0.025
-		# self.pan_i = 0.04
-		# self.pan_d = 0.00
+# 		self.pan_p = 0.04
+# 		self.pan_i = 0.04
+# 		self.pan_d = 0.00
 		self.tilt_p = 0.025
 		self.tilt_i = 0.04
 		self.tilt_d = 0.00
@@ -96,6 +96,7 @@ class PiFaceDetector:
 		# start recording
 		filename = os.path.join(DATA_DIRECTORY, 'recordings', '{}.avi'.format(time.time()))
 		cv2.VideoWriter_fourcc(*'MJPG')
+		print(filename)
 		fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 		out = cv2.VideoWriter(filename, fourcc, 20.0, self.resolution)
 
@@ -154,6 +155,8 @@ class PiFaceDetector:
 			cv2.imshow("Pan-Tilt Face Tracking", frame)
 			out.write(frame)
 			cv2.waitKey(1)
+        
+		out.release()
 
 
 	def pid_process(self, servo_angle, p, i, d, obj_coord, center_coord, tuning_time_data, tuning_error_data, tuning_angle_data):
