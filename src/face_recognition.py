@@ -164,22 +164,22 @@ class PiFaceRecognition:
 
 import argparse
 def parse_args():
-	parser = argparse.ArgumentParser(description='Train an LBPH recogniser.')
-	
-	parser.add_argument('purpose', help='an integer for the accumulator')
-	parser.add_argument('--person', help='sum the integers (default: find the max)')
+    parser = argparse.ArgumentParser(description='Train an LBPH recogniser.')
+    
+    parser.add_argument('purpose', help='an integer for the accumulator')
+    parser.add_argument('--person', help='sum the integers (default: find the max)')
 
 	args = parser.parse_args()
 	return args
 
 # Build Recogniser
-	# V1
-		# Get Embedding Vectors of Face
-		# Add Vectors To a Database
+    # V1
+        # Get Embedding Vectors of Face
+        # Add Vectors To a Database
 
-	# V2
-		# LBPHFaceRecognizer_create
-		# https://www.hackster.io/mjrobot/real-time-face-recognition-an-end-to-end-project-a10826
+    # V2
+        # LBPHFaceRecognizer_create
+        # https://www.hackster.io/mjrobot/real-time-face-recognition-an-end-to-end-project-a10826
 
 if __name__ == '__main__':
 	args = parse_args()
