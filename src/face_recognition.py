@@ -169,8 +169,8 @@ def parse_args():
     parser.add_argument('purpose', help='an integer for the accumulator')
     parser.add_argument('--person', help='sum the integers (default: find the max)')
 
-	args = parser.parse_args()
-	return args
+    args = parser.parse_args()
+    return args
 
 # Build Recogniser
     # V1

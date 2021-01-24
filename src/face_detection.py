@@ -148,7 +148,7 @@ class PiFaceDetector:
 				pth.show()
 			else:
 				pth.clear()
-        		pth.show()
+				pth.show()
 
 			# display the frame to the screen
 			cv2.imshow("Pan-Tilt Face Tracking", frame)
