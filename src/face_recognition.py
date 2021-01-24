@@ -123,7 +123,10 @@ class PiFaceRecognition:
 				if image_name == '.DS_Store':
 					continue
 				image_path = os.path.join(person_directory, image_name)
-				img = Image.open(image_path).convert('L') # convert it to grayscale
+				# img = Image.open(image_path).convert('L') # convert it to grayscale
+				img = Image.open(image_path)
+				img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # convert to gray
+
 				img_array = np.array(img, 'uint8')
 				faces.append(img_array)
 				labels.append(people[person_folder])
