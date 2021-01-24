@@ -57,6 +57,7 @@ class PiFaceRecognition:
 
 		if purpose == 'enroll':
 			image_directory = self._set_or_get_person_directory(person)
+			print('To save an image, press "k".')
 		total = 0
 
 		while True:
@@ -88,6 +89,7 @@ class PiFaceRecognition:
 							image_path = os.path.join(image_directory, f'{total}.jpg')
 							cv2.imwrite(image_path, frame)
 							total += 1
+							print('Image saved.')
 
 				# if the `q` key was pressed, break from the loop
 				elif key == ord("q"):
